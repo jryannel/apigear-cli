@@ -2,8 +2,10 @@ package filterjni
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/apigear-io/cli/pkg/gen/filters/common"
+	"github.com/apigear-io/cli/pkg/gen/filters/filterjava"
 	"github.com/apigear-io/cli/pkg/model"
 )
 
@@ -55,7 +57,17 @@ func jniSignatureType(node *model.TypedNode) (string, error) {
 			return "xxx", fmt.Errorf("ToSignatureType interface not found %s", node.Schema.Dump())
 		}
 	case model.TypeExtern:
-		return "xxx", fmt.Errorf("ToSignatureType TypeExtern not supported yet %s", node.Schema.Dump())
+		xe := filterjava.MakeJavaExtern(&node.Schema)
+		var java_module string
+		java_module = ""
+		if xe.Package != "" {
+			java_module = xe.Package
+			strings.Replace(java_module, ".", "/", -1)
+			text = "L" + java_module + "/" + xe.Name + ";"
+		} else {
+			text = "L" + xe.Name + ";"
+		}
+
 	case model.TypeInterface:
 		i := node.Schema.LookupInterface(node.Schema.Import, node.Schema.Type)
 		if i != nil {
